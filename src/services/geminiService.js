@@ -4,10 +4,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = new GoogleGenerativeAI("AIzaSyBeOiIzclBi1Cst75Oj1j017Z94SpXmP68");
 const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-export const identifyPlant = async (imageBase64) => {
+export const identifyPlant = async (imageBase64,language) => {
+  console.log('language:', language);
   try {
      //const prompt = "Identify what's in this image. If it's a plant, provide its name, brief description, leaf details, care instructions, benefits, and warnings. If it's not a plant, provide a brief description and any relevant information. Format the response as a JSON object with these keys: name, description, leafDetails (if applicable), careInstructions (if applicable), benefits (if applicable), warnings (if applicable), isPlant (boolean).";
-    const prompt = "Identify this plant accurately and provide the following information: name, brief description, leaf details, care instructions, benefits, and warnings. Format the response as a JSON object with these keys: name, description, leafDetails, careInstructions, benefits, warnings.";
+    const prompt = `Identify this plant accurately and provide the following correct information in "${language}": name, brief description, leaf details, care instructions, benefits, and warnings. Format the response as a JSON object with these keys: name, description, leafDetails, careInstructions, benefits, warnings`;
 
     const result = await model.generateContent([
       prompt,
@@ -49,3 +50,24 @@ export const identifyPlant = async (imageBase64) => {
 };
 
 export const translateText = async (text, targetLanguage) => {
+  // const url = `https://translation.googleapis.com/language/translate/v2?key="AIzaSyBeOiIzclBi1Cst75Oj1j017Z94SpXmP68"`;
+  
+  // try {
+  //   const response = await fetch(url, {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify({
+  //       q: text,
+  //       target: targetLanguage,
+  //     }),
+  //   });
+
+  //   const data = await response.json();
+  //   return data.data.translations[0].translatedText;
+  // } catch (error) {
+  //   console.error('Translation error:', error);
+  //   throw error;
+  // }
+};

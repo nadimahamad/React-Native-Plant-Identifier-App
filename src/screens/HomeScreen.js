@@ -1,40 +1,38 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Text, SafeAreaView, ScrollView, ActivityIndicator, Alert, Dimensions, Share, Button } from 'react-native';
+//LanguageSelector added
+
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Text, SafeAreaView, ScrollView, ActivityIndicator, Alert, Dimensions, Button,Share } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import ImageUploader from '../components/ImageUploader';
 import PlantInfo from '../components/PlantInfo';
+import LanguageSelector from '../components/LanguageSelector';  // Import the LanguageSelector component
 import { identifyPlant, translateText } from '../services/geminiService';
 
 const { width } = Dimensions.get('window');
 
-const HomeScreen = (navigation) => {
+const HomeScreen = () => {
   const [plantInfo, setPlantInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
   const [error, setError] = useState(null);
-  const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [isPlant, setIsPlant] = useState(true);
 
   const titleOpacity = useSharedValue(0);
   const imageUploaderScale = useSharedValue(0.8);
 
   useEffect(() => {
-    // SplashScreen.hide();
     titleOpacity.value = withSpring(1);
     imageUploaderScale.value = withSpring(1);
   }, []);
 
-  const titleStyle = useAnimatedStyle(() => {
-    return {
-      opacity: titleOpacity.value,
-    };
-  });
+  const titleStyle = useAnimatedStyle(() => ({
+    opacity: titleOpacity.value,
+  }));
 
-  const imageUploaderStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: imageUploaderScale.value }],
-    };
-  });
+  const imageUploaderStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: imageUploaderScale.value }],
+  }));
 
   const handleImageUpload = async (imageUri, imageBase64) => {
     setPlantInfo(null);
@@ -42,13 +40,14 @@ const HomeScreen = (navigation) => {
     setImage(imageUri);
     setError(null);
     try {
-      const info = await identifyPlant(imageBase64);
+      const info = await identifyPlant(imageBase64,selectedLanguage);
       if (info.error) {
         setError(info.rawResponse);
       } else {
         setPlantInfo(info);
         setIsPlant(info.isPlant);
       }
+      //setImage(null);
     } catch (error) {
       console.error('Error identifying image:', error);
       setError('Unable to identify the image. Please try again.');
@@ -58,6 +57,7 @@ const HomeScreen = (navigation) => {
   };
 
   const handleTranslate = async () => {
+   // setPlantInfo(null);
     if (!plantInfo) return;
 
     setLoading(true);
@@ -73,14 +73,15 @@ const HomeScreen = (navigation) => {
     } finally {
       setLoading(false);
     }
-  }; 
+  };
 
   const handleShare = async () => {
+    console.log('handleShare:', plantInfo);
     if (!plantInfo) return;
 
     try {
       const result = await Share.share({
-        message: `🌿Name: ${plantInfo.name}\n🍃Description: ${plantInfo.description}\n🌱Care Instructions: ${plantInfo.careInstructions}\n✨Benefits: ${plantInfo.benefits}`,//careInstructions
+        message: `🌿Name: ${plantInfo.name}\n🍃Description: ${plantInfo.description}\n🌱Care Instructions: ${plantInfo.careInstructions}\n✨Benefits: ${plantInfo.benefits}`,
       });
 
       if (result.action === Share.sharedAction) {
@@ -112,9 +113,17 @@ const HomeScreen = (navigation) => {
         >
           🌿 Plant Identifier
         </Animated.Text>
-        {/* <Animated.View style={imageUploaderStyle}> */}
-          <ImageUploader onImageUpload={handleImageUpload} image={image} />
-        {/* </Animated.View> */}
+        <LanguageSelector
+          selectedLanguage={selectedLanguage}
+          onLanguageChange={setSelectedLanguage}
+          onTranslate={()=>{ 
+            setImage(null);
+            handleTranslate();
+          }}
+          accessibilityLabel="Language Selector"
+        />
+          <ImageUploader onImageUpload={handleImageUpload} image={image} style={{marginTop:5}}/>
+
         {loading && (
           <View style={styles.loadingContainer} accessibilityLiveRegion="polite">
             <ActivityIndicator size="large" color="#4CAF50" />
@@ -128,16 +137,16 @@ const HomeScreen = (navigation) => {
             accessibilityLabel="Error Message"
           >
             <Text style={styles.errorText}>Error: {error}</Text>
-          </View>
+          </View> 
         )}
         {plantInfo && (
           <>
             <PlantInfo info={plantInfo} isPlant={isPlant} />
+            {plantInfo.name !== undefined &&(
             <View style={styles.shareButtonContainer}>
-              {/* <Button title="PlantCareScheduler" onPress={handlePlantCareScheduler} accessibilityLabel="PlantCareScheduler Button" /> */}
               <Button title="Share Results" onPress={handleShare} accessibilityLabel="Share Results Button" />
-
             </View>
+            )}
           </>
         )}
       </ScrollView>
@@ -148,6 +157,7 @@ const HomeScreen = (navigation) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width:  width,
     backgroundColor: '#F5F5F5',
   },
   scrollContent: {
@@ -160,7 +170,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#2E7D32',
-    marginBottom: 20,
+    //marginBottom: 5,
   },
   loadingContainer: {
     alignItems: 'center',
@@ -188,7 +198,3 @@ const styles = StyleSheet.create({
 });
 
 export default HomeScreen;
-
-
-
-

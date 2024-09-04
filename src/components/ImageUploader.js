@@ -31,7 +31,7 @@ const ImageUploader = ({ onImageUpload, image }) => {
       ) : (
         <View style={styles.placeholderContainer}>
           <Text style={styles.placeholderEmoji}>🖼️</Text>
-          <Text style={styles.placeholderText}>No image selected</Text>
+          <Text style={styles.placeholderText}>{"No image selected\n\n(Note:- Select lanuage and plant image to get results)"}</Text>
         </View>
       )}
       <View style={styles.buttonContainer}>
@@ -73,7 +73,8 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: '#888',
-    fontSize: 16,
+    fontSize: 14,
+    textAlign:'center'
   },
   buttonContainer: {
     flexDirection: 'row',
